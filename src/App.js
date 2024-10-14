@@ -4,10 +4,7 @@ import { ATTRIBUTE_LIST, SKILL_LIST } from "./consts";
 import CharacterSheet from "./pages/CharacterSheet";
 
 function App() {
-  // State variables
   const [characters, setCharacters] = useState([]);
-  const [skillCheckResult, setSkillCheckResult] = useState(null);
-  const [classRequirements, setClassRequirements] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -22,7 +19,7 @@ function App() {
     setError(null);
     try {
       const response = await fetch(
-        `https://recruiting.verylongdomaintotestwith.ca/api/{${username}}/character`
+        `https://recruiting.verylongdomaintotestwith.ca/api/${username}/character`
       );
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -63,7 +60,7 @@ function App() {
     setError(null);
     try {
       const response = await fetch(
-        `https://recruiting.verylongdomaintotestwith.ca/api/{${username}}/character`,
+        `https://recruiting.verylongdomaintotestwith.ca/api/${username}/character`,
         {
           method: "POST",
           headers: {
@@ -100,86 +97,6 @@ function App() {
 
   const resetAllCharacters = () => {
     initializeDefaultCharacter();
-    setSkillCheckResult(null);
-    setClassRequirements(null);
-  };
-
-  const handleAttributeChange = (id, attribute, value) => {
-    setCharacters((prevCharacters) =>
-      prevCharacters.map((character) =>
-        character.id === id
-          ? {
-              ...character,
-              attributes: {
-                ...character.attributes,
-                [attribute]: Math.max(
-                  0,
-                  character.attributes[attribute] + value
-                ),
-              },
-            }
-          : character
-      )
-    );
-  };
-
-  const handleSkillChange = (id, skillName, value) => {
-    setCharacters((prevCharacters) =>
-      prevCharacters.map((character) => {
-        if (character.id !== id) return character;
-
-        const totalSkillPoints =
-          10 + Math.floor((character.attributes.Intelligence - 10) / 2) * 4;
-        const currentSkillPoints = character.skills.reduce(
-          (total, skill) => total + skill.points,
-          0
-        );
-
-        if (currentSkillPoints + value > totalSkillPoints) {
-          alert("Not enough skill points available");
-          return character;
-        }
-
-        return {
-          ...character,
-          skills: character.skills.map((skill) =>
-            skill.name === skillName
-              ? { ...skill, points: Math.max(0, skill.points + value) }
-              : skill
-          ),
-        };
-      })
-    );
-  };
-
-  const handleSkillCheck = (id, skillName, dc) => {
-    const character = characters.find((char) => char.id === id);
-    if (!character) return;
-
-    const skillObj = character.skills.find((s) => s.name === skillName);
-    if (!skillObj) return;
-
-    const attributeValue = character.attributes[skillObj.attributeModifier];
-    const attributeModifier = Math.floor((attributeValue - 10) / 2);
-    const totalSkill = skillObj.points + attributeModifier;
-    const roll = Math.floor(Math.random() * 20) + 1;
-    const result = roll + totalSkill >= dc ? "Success" : "Failure";
-
-    setSkillCheckResult({
-      characterId: id,
-      skill: skillName,
-      roll,
-      dc,
-      result,
-      totalSkill,
-    });
-  };
-
-  // Function to handle class selection
-  const handleClassClick = (className) => {
-    setClassRequirements((prevClass) =>
-      prevClass === className ? null : className
-    );
   };
 
   return (
@@ -200,15 +117,8 @@ function App() {
             <CharacterSheet
               key={character.id}
               character={character}
-              onAttributeChange={handleAttributeChange}
-              onSkillChange={handleSkillChange}
-              onSkillCheck={handleSkillCheck}
-              skillCheckResult={skillCheckResult}
-              classRequirements={classRequirements}
-              handleClassClick={handleClassClick}
               index={index}
               setCharacters={setCharacters}
-              characters={characters}
             />
           ))
         ) : (
